@@ -79,3 +79,34 @@ def get_all_employees():
         "total_employees": len(employees),
         "data": employees
     }
+
+
+# post method to add a new employee to the list
+@app.post("/add_employee")
+def add_employee(employee: Employee):
+    employees.append(employee.dict())
+    return {"message": "Employee added successfully", "employee": employee} 
+    
+
+# update the employee data using put method
+@app.put("/update_employee/{emp_id}")
+def update_employee(emp_id: int, employee: Employee):
+    for index, emp in enumerate(employees):
+        if emp["emp_id"] == emp_id:
+            employees[index] = employee.dict()
+            return {
+                "message": "Employee updated successfully",
+                "employee": employees[index]
+            }
+
+    return {"message": "Employee not found"}
+
+# delete the employee data using delete method
+@app.delete("/delete_employee/{emp_id}")
+def delete_employee(emp_id: int):
+    for index, emp in enumerate(employees):
+        if emp["emp_id"] == emp_id:
+            del employees[index]
+            return {"message": "Employee deleted successfully"}
+
+    return {"message": "Employee not found"}
