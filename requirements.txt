@@ -7,3 +7,5 @@ seaborn
 requests
 beautifulsoup4
 jupyterlab
+fastapi
+uvicorn
