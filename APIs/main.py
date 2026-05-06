@@ -1,4 +1,4 @@
-# import fast api
+# import fast api -- fast api si lightweight and fast web framework for building APIs in python
 # fast api is hte predefined library for building APIs in python
 
 from fastapi import FastAPI
@@ -101,7 +101,7 @@ def update_employee(emp_id: int, employee: Employee):
 
     return {"message": "Employee not found"}
 
-# delete the employee data using delete method
+# delete the employee data using delete method  
 @app.delete("/delete_employee/{emp_id}")
 def delete_employee(emp_id: int):
     for index, emp in enumerate(employees):

@@ -9,3 +9,4 @@ beautifulsoup4
 jupyterlab
 fastapi
 uvicorn
+motor
