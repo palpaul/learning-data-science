@@ -9,3 +9,6 @@ beautifulsoup4
 jupyterlab
 fastapi
 uvicorn
+motor
+transformers
+torch
