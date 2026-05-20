@@ -2,7 +2,11 @@
  It uses the pypdf library to read the PDF file and extract the text.
    The extract_text method takes a file path as input and returns the extracted text as a string. """
 
+import os
+
 from pypdf import PdfReader
+from dotenv import load_dotenv
+load_dotenv()
 
 """SentenceTransformer is a class that uses the sentence-transformers library to create embeddings for the extracted text.
  It uses the SentenceTransformer class from the sentence-transformers library to create embeddings for the extracted text"""
@@ -69,8 +73,14 @@ from openai import OpenAI
 
 # Generate response using OpenAI
 def generate_response(query, context):
-
-    openai_client = OpenAI(api_key="")
+    #hard code api key here for testing purpose, you can load it from environment variable or you can directly pass the api key here
+    #  openai_client = OpenAI(api_key="")
+    # load the api key from environment variable or you can directly pass the api key here
+    api_key = os.getenv("OPENAI_API_KEY")  # make sure to set the OPENAI_API_KEY environment variable with your OpenAI API key  
+    print("API Key:", api_key)  # Debugging line to check if the API key is loaded correctly
+    if not api_key:
+        return "Error: OpenAI API key not found. Please set the OPENAI_API_KEY environment variable."
+    openai_client = OpenAI(api_key=api_key)
 
     prompt = f"""
 Answer the question based only on the provided context.
