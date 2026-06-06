@@ -8,6 +8,10 @@ from pypdf import PdfReader
 from dotenv import load_dotenv
 load_dotenv()
 
+# For quick testing you can hard-code an API key here (Claude or OpenAI).
+# Example (uncomment to use):
+# api_key = "sk-..."  # placed here only for local testing; avoid committing secrets.
+
 """SentenceTransformer is a class that uses the sentence-transformers library to create embeddings for the extracted text.
  It uses the SentenceTransformer class from the sentence-transformers library to create embeddings for the extracted text"""
 
@@ -69,18 +73,13 @@ def search_query(query):
 
     return results
 
-from openai import OpenAI
-
-# Generate response using OpenAI
+# Generate response using OpenAI if available, otherwise Claude/Anthropic
 def generate_response(query, context):
-    #hard code api key here for testing purpose, you can load it from environment variable or you can directly pass the api key here
-    #  openai_client = OpenAI(api_key="")
-    # load the api key from environment variable or you can directly pass the api key here
-    api_key = os.getenv("OPENAI_API_KEY")  # make sure to set the OPENAI_API_KEY environment variable with your OpenAI API key  
-    print("API Key:", api_key)  # Debugging line to check if the API key is loaded correctly
-    if not api_key:
-        return "Error: OpenAI API key not found. Please set the OPENAI_API_KEY environment variable."
-    openai_client = OpenAI(api_key=api_key)
+    openai_key = os.getenv("OPENAI_API_KEY")
+    claude_key = os.getenv("ANTHROPIC_API_KEY") or os.getenv("CLAUDE_API_KEY")
+
+    if not openai_key and not claude_key:
+        return "Error: No API key found. Set OPENAI_API_KEY or ANTHROPIC_API_KEY/CLAUDE_API_KEY in the environment."
 
     prompt = f"""
 Answer the question based only on the provided context.
@@ -92,21 +91,33 @@ Question:
 {query}
 """
 
+    if openai_key:
+        try:
+            from openai import OpenAI as OpenAIClient
+
+            client = OpenAIClient(api_key=openai_key)
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"OpenAI error: {str(e)}"
+
     try:
+        from anthropic import Anthropic
+    except Exception:
+        return "Error: Anthropic client not installed. Install the 'anthropic' package or set OPENAI_API_KEY."
 
-        response = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
+    try:
+        client = Anthropic(api_key=claude_key)
+        resp = client.completions.create(
+            model="claude-2.1",
+            prompt=prompt,
+            max_tokens_to_sample=1000,
         )
-
-        final_answer = response.choices[0].message.content
-
-        return final_answer
-
+        if isinstance(resp, dict):
+            return resp.get("completion") or resp.get("text") or str(resp)
+        return getattr(resp, "completion", None) or getattr(resp, "text", str(resp))
     except Exception as e:
-        return f"Error: {str(e)}"
+        return f"Claude error: {str(e)}"
